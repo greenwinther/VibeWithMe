@@ -1,0 +1,73 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                    String               @id @default(uuid())
+  name                  String           
+  avatarUrl             String?          
+                      
+  videos                Video[]              @relation("AddedVideos")
+  messages              Message[]            @relation("SentMessages")
+  rooms                 RoomParticipant[]
+}
+
+model Room {
+  id                    String               @id @default(uuid())
+  name                  String
+  isPublic              Boolean              @default(true)
+  createdAt             DateTime             @default(now())
+  lastActive            DateTime             @default(now())
+
+  // playback state for late joiners:
+  currentVideoPosition  Int                  @default(0) // index in the queue
+  currentVideoTime      Int                  @default(0) // seconds into that video
+
+  videos                Video[]              @relation("Playlist")
+  messages              Message[]            @relation("Chat")
+  participants          RoomParticipant[]
+}
+
+model RoomParticipant {
+  user                  User                 @relation(fields: [userId], references: [id])
+  userId                String               
+  room                  Room                 @relation(fields: [roomId], references: [id])
+  roomId                String
+
+  @@id([userId, roomId])
+}
+
+model Video {
+  id                    String               @id @default(uuid())
+  videoId               String
+  title                 String
+  duration              Int
+  thumbnail             String
+
+  // playlist order & who added it
+  position              Int
+  addedBy               User                 @relation("AddedVideos", fields: [addedById], references: [id])
+  addedById             String             
+                        
+  room                  Room                 @relation("Playlist", fields: [roomId], references: [id])
+  roomId                String
+}
+
+model Message {
+  id                    String               @id @default(uuid())
+  text                  String             
+  createdAt             DateTime             @default(now())
+                        
+  sender                User                 @relation("SentMessages", fields: [userId], references: [id])
+  userId                String             
+                        
+  room                  Room                 @relation("Chat", fields: [roomId], references: [id])
+  roomId                String
+}
+
+
