@@ -64,14 +64,14 @@ export default function LobbyScreen() {
 				body: JSON.stringify({ name: filterText, isPublic: true }),
 			});
 			const room: PublicRoomDTO = await res.json();
-			/* router.push(`/rooms/${room.id}`); */
+			router.push(`/rooms/${room.id}`);
 		} catch (e) {
 			console.error("Create room failed", e);
 		}
 	};
 
 	const handleJoin = (id: string) => {
-		/* router.push(`/rooms/${id}`) */
+		router.push(`/rooms/${id}`);
 	};
 
 	// Prepare filtered list
