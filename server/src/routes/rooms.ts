@@ -4,16 +4,28 @@
  * - POST /rooms: create a new room
  */
 
+// server/src/routes/rooms.ts
 import { RequestHandler, Router } from "express";
 import * as roomLib from "../lib/rooms";
-import type { CreateRoomBody, CreateRoomResponse, ErrorResponse, PublicRoom } from "../types";
+
+// Import your shared API‐contract types
+import type { CreateRoomBody, CreateRoomResponse, ErrorResponse, PublicRoomDTO } from "@shared";
 
 const router = Router();
 
 // GET /rooms — list public rooms
-const listRooms: RequestHandler<{}, PublicRoom[], {}> = async (_req, res) => {
+const listRooms: RequestHandler<{}, PublicRoomDTO[], {}> = async (_req, res) => {
+	// Fetch raw Room records and map to your DTO shape
 	const rooms = await roomLib.listPublicRooms();
-	res.json(rooms);
+	const dto = rooms.map((r) => ({
+		id: r.id,
+		name: r.name,
+		createdAt: r.createdAt.toISOString(),
+		lastActive: r.lastActive.toISOString(),
+		currentVideoPosition: r.currentVideoPosition,
+		currentVideoTime: r.currentVideoTime,
+	}));
+	res.json(dto);
 };
 
 // POST /rooms — create a new room
@@ -26,7 +38,17 @@ const createRoom: RequestHandler<{}, CreateRoomResponse, CreateRoomBody> = async
 	}
 
 	const room = await roomLib.createRoom(name, isPublic);
-	res.status(201).json(room);
+	// Convert Dates to ISO strings for the DTO
+	const response: PublicRoomDTO & { isPublic: boolean } = {
+		id: room.id,
+		name: room.name,
+		isPublic: room.isPublic,
+		createdAt: room.createdAt.toISOString(),
+		lastActive: room.lastActive.toISOString(),
+		currentVideoPosition: room.currentVideoPosition,
+		currentVideoTime: room.currentVideoTime,
+	};
+	res.status(201).json(response);
 };
 
 router.get("/", listRooms);
