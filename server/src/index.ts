@@ -10,17 +10,24 @@
 import cors from "cors";
 import express, { RequestHandler } from "express";
 import http from "http";
-import { Server as SocketIOServer } from "socket.io";
+import { Server } from "socket.io";
 import { prisma } from "./lib/prisma";
 import roomsRouter from "./routes/rooms";
 import { initSockets } from "./socket";
 
 // Initialize Express app and HTTP server
 const app = express();
-const server = http.createServer(app);
+const httpServer = http.createServer(app);
 
-// Middleware configuration
-app.use(cors({ origin: "http://localhost:19006" }));
+// DEV: allow any origin
+app.use(
+	cors({
+		origin: "*",
+		methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+		allowedHeaders: ["Content-Type", "Authorization"],
+		credentials: true,
+	})
+);
 app.use(express.json());
 
 // Healthcheck endpoint — Responds with a simple message to confirm server is up
@@ -33,14 +40,19 @@ app.get("/", healthcheck);
 app.use("/rooms", roomsRouter);
 
 // Initialize Socket.IO for real-time communication
-const io = new SocketIOServer(server, {
-	cors: { origin: "http://localhost:19006" },
+const io = new Server(httpServer, {
+	cors: {
+		origin: "*",
+		methods: ["GET", "POST"],
+		allowedHeaders: ["Content-Type"],
+		credentials: true,
+	},
 });
 initSockets(io);
 
 // Start HTTP server - Listen on PORT - Create a default "Test Room" if none exist
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 4000;
-server.listen(PORT, async () => {
+httpServer.listen(PORT, async () => {
 	console.log(`Server listening on http://localhost:${PORT}`);
 
 	// Bootstrap: create a sample room for development if empty
