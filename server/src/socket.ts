@@ -5,11 +5,11 @@
  * - Relays signaling data between peers
  */
 
-import { Server as IOServer } from "socket.io";
+import { Server } from "socket.io";
 import { prisma } from "./lib/prisma";
 
 // Initialize all socket event listeners
-export function initSockets(io: IOServer) {
+export function initSockets(io: Server) {
 	io.on("connection", (socket) => {
 		console.log(`Client connected [id=${socket.id}]`);
 
