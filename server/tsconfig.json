@@ -6,7 +6,12 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@shared": ["shared"],
+      "@shared/*": ["shared/*"]
+    }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "shared/**/*"]
 }
