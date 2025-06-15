@@ -11,8 +11,11 @@ import cors from "cors";
 import express, { RequestHandler } from "express";
 import http from "http";
 import { Server } from "socket.io";
+import { cleanupStaleRooms } from "./lib/cleanup";
 import { prisma } from "./lib/prisma";
 import roomsRouter from "./routes/rooms";
+import usersRouter from "./routes/users";
+import youtubeRouter from "./routes/youtube";
 import { initSockets } from "./socket";
 
 // Initialize Express app and HTTP server
@@ -36,8 +39,14 @@ const healthcheck: RequestHandler = (_req, res) => {
 };
 app.get("/", healthcheck);
 
-// Mount your rooms routes
+// Mount the rooms routes
 app.use("/rooms", roomsRouter);
+
+// Mount the youtube search routes
+app.use("/youtube-search", youtubeRouter);
+
+// Mount the users routes
+app.use("/users", usersRouter);
 
 // Initialize Socket.IO for real-time communication
 const io = new Server(httpServer, {
@@ -54,6 +63,12 @@ initSockets(io);
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 4000;
 httpServer.listen(PORT, async () => {
 	console.log(`Server listening on http://localhost:${PORT}`);
+
+	// Run cleanup immediately, then every hour
+	cleanupStaleRooms().catch(console.error);
+	setInterval(() => {
+		cleanupStaleRooms().catch(console.error);
+	}, 1000 * 60 * 60); // 1 hour
 
 	// Bootstrap: create a sample room for development if empty
 	if ((await prisma.room.count()) === 0) {
