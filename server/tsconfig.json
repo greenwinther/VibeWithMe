@@ -9,9 +9,9 @@
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
-      "@shared": ["shared"],
-      "@shared/*": ["shared/*"]
+      "@types": ["types"],
+      "@types/*": ["types/*"]
     }
   },
-  "include": ["src/**/*", "shared/**/*"]
+  "include": ["src/**/*", "types/**/*"]
 }

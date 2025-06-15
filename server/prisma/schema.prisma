@@ -69,5 +69,3 @@ model Message {
   room                  Room                 @relation("Chat", fields: [roomId], references: [id])
   roomId                String
 }
-
-
