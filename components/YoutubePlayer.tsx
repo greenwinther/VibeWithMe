@@ -1,28 +1,37 @@
+import { usePlaylist } from "@/contexts/PlaylistContext";
+import { useRoom } from "@/contexts/RoomContext";
 import React, { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import YoutubePlayer, { YoutubeIframeRef } from "react-native-youtube-iframe";
 
-type YouTubePlayerProps = {
-	videoId: string;
-	height?: number;
-	onPlayPause?: (playing: boolean) => void;
-};
-
-export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoId, height = 200, onPlayPause }) => {
+// Simplified props: height only; videoId and play/pause handled via contexts
+export const YouTubePlayer: React.FC<{ height?: number }> = ({ height = 200 }) => {
 	const playerRef = useRef<YoutubeIframeRef>(null);
+	const { queue, currentIndex } = usePlaylist();
+	const { playPause, seekPlayback, isPlaying } = useRoom();
 	const [loading, setLoading] = useState(true);
+
+	// Pick the current video from the queue
+	const currentVideo = queue[currentIndex]?.video;
+	const videoId = currentVideo?.videoId || "";
 
 	const onReady = useCallback(() => {
 		setLoading(false);
 	}, []);
 
 	const onStateChange = useCallback(
-		(state: "playing" | "paused" | "ended" | "buffering" | "unstarted") => {
-			if (onPlayPause && (state === "playing" || state === "paused")) {
-				onPlayPause(state === "playing");
-			}
+		(state: string) => {
+			if (state === "playing") playPause(true);
+			if (state === "paused") playPause(false);
 		},
-		[onPlayPause]
+		[playPause]
+	);
+
+	const onProgress = useCallback(
+		({ currentTime }: { currentTime: number }) => {
+			seekPlayback(currentTime);
+		},
+		[seekPlayback]
 	);
 
 	return (
@@ -31,10 +40,11 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoId, height = 
 			<YoutubePlayer
 				ref={playerRef}
 				height={height}
-				play={false}
+				play={isPlaying}
 				videoId={videoId}
 				onReady={onReady}
 				onChangeState={onStateChange}
+				onProgress={onProgress}
 				webViewProps={{
 					allowsInlineMediaPlayback: true,
 					mediaPlaybackRequiresUserAction: false,

@@ -1,14 +1,11 @@
+import { PublicRoomDTO } from "@/server/types";
 import React from "react";
 import { FlatList, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 
-export interface RoomItem {
-	id: string;
-	name: string;
-	lastActive: string;
-}
-
 export interface RoomListProps {
-	rooms: RoomItem[];
+	/** Array of public rooms to display */
+	rooms: PublicRoomDTO[];
+	/** Callback when a room is pressed */
 	onRoomPress: (roomId: string) => void;
 	style?: ViewStyle;
 	itemStyle?: ViewStyle;
@@ -16,7 +13,10 @@ export interface RoomListProps {
 	metaStyle?: TextStyle;
 }
 
-// RoomList component: renders a list of rooms with touchable items Purely presentational; navigation logic should live in the parent
+/**
+ * RoomList component: renders a list of rooms with touchable items.
+ * Uses PublicRoomDTO (includes participantCount).
+ */
 export default function RoomList({
 	rooms,
 	onRoomPress,
@@ -36,8 +36,9 @@ export default function RoomList({
 						{item.name}
 					</Text>
 					<Text style={[styles.meta, metaStyle]}>
-						Last active: {new Date(item.lastActive).toLocaleTimeString()}
+						Last active: {new Date(item.lastActive).toLocaleString()}
 					</Text>
+					<Text style={[styles.meta, metaStyle]}>Participants: {item.participantCount}</Text>
 				</TouchableOpacity>
 			)}
 		/>
