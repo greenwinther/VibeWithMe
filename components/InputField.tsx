@@ -8,7 +8,6 @@ export interface InputFieldProps extends TextInputProps {
 	style?: TextInputProps["style"];
 }
 
-//InputField component: A styled TextInput with default padding and border
 export default function InputField({ value, onChangeText, placeholder, style, ...rest }: InputFieldProps) {
 	return (
 		<TextInput

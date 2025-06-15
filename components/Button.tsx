@@ -16,7 +16,6 @@ export interface ButtonProps {
 	textStyle?: TextStyle;
 }
 
-// Button component: a styled TouchableOpacity
 export default function Button({ title, onPress, disabled = false, style, textStyle }: ButtonProps) {
 	return (
 		<TouchableOpacity
