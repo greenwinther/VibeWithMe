@@ -1,42 +1,22 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUser } from "@/contexts/UserContext";
 import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Button, Image, StyleSheet, Text, TextInput, View } from "react-native";
 
-const API_BASE = "http://localhost:4000";
-
-export default function Profile() {
-	const [userId, setUserId] = useState<string | null>(null);
+export default function ProfileScreen() {
+	const { user, loading, error, updateProfile } = useUser();
 	const [name, setName] = useState("");
-	const [avatarUrl, setAvatar] = useState<string | null>(null);
-	const [loading, setLoading] = useState(true);
+	const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 	const [saving, setSaving] = useState(false);
 
-	// Load the saved userId then fetch profile data
+	// Initialize form fields when user loads
 	useEffect(() => {
-		(async () => {
-			const id = await AsyncStorage.getItem("userId");
-			if (!id) {
-				Alert.alert("Error", "No userId found. Rejoin a room first.");
-				setLoading(false);
-				return;
-			}
-			setUserId(id);
-			try {
-				const res = await fetch(`${API_BASE}/users/${id}`);
-				const user = await res.json();
-				setName(user.name);
-				setAvatar(user.avatarUrl ?? null);
-			} catch (err) {
-				console.error(err);
-				Alert.alert("Error", "Couldn’t load profile.");
-			} finally {
-				setLoading(false);
-			}
-		})();
-	}, []);
+		if (user) {
+			setName(user.name);
+			setAvatarUrl(user.avatarUrl ?? null);
+		}
+	}, [user]);
 
-	// Pick a new avatar
 	const pickAvatar = async () => {
 		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 		if (status !== "granted") {
@@ -44,42 +24,39 @@ export default function Profile() {
 			return;
 		}
 		const result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: "images",
+			mediaTypes: "images" as ImagePicker.MediaType,
 			allowsEditing: true,
 			aspect: [1, 1],
 			quality: 0.5,
 		});
 		if (!result.canceled && result.assets.length > 0) {
-			setAvatar(result.assets[0].uri);
+			setAvatarUrl(result.assets[0].uri);
 		}
 	};
 
-	// Save changes back to server & AsyncStorage
-	const saveProfile = async () => {
-		if (!userId) return;
+	const handleSave = async () => {
 		setSaving(true);
 		try {
-			const res = await fetch(`${API_BASE}/users/${userId}`, {
-				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ name, avatarUrl }),
-			});
-			if (!res.ok) throw new Error("Save failed");
-			const user = await res.json();
-			await AsyncStorage.setItem("userName", user.name);
-			if (user.avatarUrl) {
-				await AsyncStorage.setItem("avatarUrl", user.avatarUrl);
-			}
+			await updateProfile({ name, avatarUrl: avatarUrl ?? undefined });
 			Alert.alert("Saved", "Your profile has been updated.");
 		} catch (err) {
 			console.error(err);
-			Alert.alert("Error", "Couldn’t save profile.");
+			Alert.alert("Error", "Couldn't save profile.");
 		} finally {
 			setSaving(false);
 		}
 	};
 
-	if (loading) return <ActivityIndicator style={styles.center} />;
+	if (loading) {
+		return <ActivityIndicator style={styles.center} size="large" />;
+	}
+	if (error) {
+		return (
+			<View style={styles.center}>
+				<Text>Error loading profile</Text>
+			</View>
+		);
+	}
 
 	return (
 		<View style={styles.container}>
@@ -97,7 +74,7 @@ export default function Profile() {
 			<Button title="Choose Photo" onPress={pickAvatar} />
 
 			<View style={{ marginTop: 30 }}>
-				{saving ? <ActivityIndicator /> : <Button title="Save Profile" onPress={saveProfile} />}
+				{saving ? <ActivityIndicator /> : <Button title="Save Profile" onPress={handleSave} />}
 			</View>
 		</View>
 	);
