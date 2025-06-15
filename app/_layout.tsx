@@ -1,4 +1,3 @@
-// app/_layout.tsx
 import { RoomProvider } from "@/contexts/RoomContext";
 import { UserProvider } from "@/contexts/UserContext";
 import { Stack } from "expo-router";

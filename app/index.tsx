@@ -1,89 +1,67 @@
-/**
- * app/index.tsx
- *
- * Lobby Screen with modular components:
- * - Profile button to open username modal
- * - TextInput for filter and room name
- * - Button to create a new room
- * - RoomList to display and join rooms
- */
-
 import Button from "@/components/Button";
 import InputField from "@/components/InputField";
-import RoomList, { RoomItem } from "@/components/RoomList";
+import RoomList from "@/components/RoomList";
+import { useUser } from "@/contexts/UserContext";
 import { PublicRoomDTO } from "@/server/types";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 export default function LobbyScreen() {
 	const router = useRouter();
+	const { user, loading: userLoading, error: userError } = useUser();
 	const [rooms, setRooms] = useState<PublicRoomDTO[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [filterText, setFilterText] = useState("");
-	const [username, setUsername] = useState("");
 
-	// Fetch rooms and username on mount
+	// Fetch rooms on mount
 	useEffect(() => {
-		fetchRooms();
-		loadUsername();
+		(async () => {
+			try {
+				const res = await fetch("http://localhost:4000/rooms");
+				const data: PublicRoomDTO[] = await res.json();
+				setRooms(data);
+			} catch (e) {
+				console.error("Load rooms failed", e);
+			} finally {
+				setLoading(false);
+			}
+		})();
 	}, []);
 
-	const fetchRooms = async () => {
-		try {
-			const res = await fetch("http://localhost:4000/rooms");
-			const data: PublicRoomDTO[] = await res.json();
-			setRooms(data);
-		} catch (e) {
-			console.error("Load rooms failed", e);
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	const loadUsername = async () => {
-		const saved = await AsyncStorage.getItem("username");
-		if (saved) setUsername(saved);
-		else {
-			const rand = `User${Math.floor(Math.random() * 1000)}`;
-			setUsername(rand);
-			await AsyncStorage.setItem("username", rand);
-		}
-	};
-
 	const handleCreateRoom = async () => {
-		if (!filterText.trim()) return;
+		if (!filterText.trim() || !user) return;
 		try {
 			const res = await fetch("http://localhost:4000/rooms", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ name: filterText, isPublic: true }),
 			});
-			const room: PublicRoomDTO = await res.json();
+			const room = await res.json();
 			router.push(`/rooms/${room.id}`);
 		} catch (e) {
 			console.error("Create room failed", e);
 		}
 	};
 
-	const handleJoin = (id: string) => {
-		router.push(`/rooms/${id}`);
-	};
+	const handleJoin = (id: string) => router.push(`/rooms/${id}`);
+	const handleGoToProfile = () => router.push("/profile");
 
-	const handleGoToProfile = () => {
-		router.push("/profile");
-	};
+	// filter rooms by name
+	const filteredRooms = rooms.filter((r) => r.name.toLowerCase().includes(filterText.toLowerCase()));
 
-	// Prepare filtered list
-	const filtered: RoomItem[] = rooms
-		.filter((r) => r.name.toLowerCase().includes(filterText.toLowerCase()))
-		.map((r) => ({ id: r.id, name: r.name, lastActive: r.lastActive }));
-
-	if (loading) {
+	if (userLoading || loading) {
 		return (
 			<View style={styles.center}>
 				<ActivityIndicator />
+			</View>
+		);
+	}
+	if (userError) {
+		return (
+			<View style={styles.center}>
+				<Text>Error loading user</Text>
 			</View>
 		);
 	}
@@ -103,7 +81,7 @@ export default function LobbyScreen() {
 			<Button title={`Create "${filterText}"`} onPress={handleCreateRoom} />
 
 			{/* Room list */}
-			<RoomList rooms={filtered} onRoomPress={handleJoin} />
+			<RoomList rooms={filteredRooms} onRoomPress={handleJoin} />
 		</View>
 	);
 }
