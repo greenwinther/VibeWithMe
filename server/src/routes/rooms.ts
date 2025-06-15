@@ -4,42 +4,50 @@
  * - POST /rooms: create a new room
  */
 
-// server/src/routes/rooms.ts
+import { CreateRoomBody, ErrorResponse, PublicRoomDTO, RoomDTO } from "@types";
 import { RequestHandler, Router } from "express";
+import { prisma } from "src/lib/prisma";
 import * as roomLib from "../lib/rooms";
-
-// Import your shared API‐contract types
-import type { CreateRoomBody, CreateRoomResponse, ErrorResponse, PublicRoomDTO } from "@shared";
 
 const router = Router();
 
-// GET /rooms — list public rooms
-const listRooms: RequestHandler<{}, PublicRoomDTO[], {}> = async (_req, res) => {
-	// Fetch raw Room records and map to your DTO shape
-	const rooms = await roomLib.listPublicRooms();
-	const dto = rooms.map((r) => ({
-		id: r.id,
-		name: r.name,
-		createdAt: r.createdAt.toISOString(),
-		lastActive: r.lastActive.toISOString(),
-		currentVideoPosition: r.currentVideoPosition,
-		currentVideoTime: r.currentVideoTime,
+// List all public rooms
+const listRooms: RequestHandler<{}, PublicRoomDTO[]> = async (_req, res) => {
+	const rows = await roomLib.listPublicRooms();
+
+	const dto: PublicRoomDTO[] = rows.map((room) => ({
+		id: room.id,
+		name: room.name,
+		createdAt: room.createdAt.toISOString(),
+		lastActive: room.lastActive.toISOString(),
+		currentVideoPosition: room.currentVideoPosition,
+		currentVideoTime: room.currentVideoTime,
+		participantCount: room.participantCount,
 	}));
+
 	res.json(dto);
 };
 
-// POST /rooms — create a new room
-const createRoom: RequestHandler<{}, CreateRoomResponse, CreateRoomBody> = async (req, res) => {
+// Create a new room
+const createRoom: RequestHandler<{}, RoomDTO | ErrorResponse, CreateRoomBody> = async (req, res) => {
 	const { name, isPublic } = req.body;
+
 	if (!name || typeof isPublic !== "boolean") {
 		const err: ErrorResponse = { error: "Invalid input" };
 		res.status(400).json(err);
 		return;
 	}
 
+	// Create the room
 	const room = await roomLib.createRoom(name, isPublic);
-	// Convert Dates to ISO strings for the DTO
-	const response: PublicRoomDTO & { isPublic: boolean } = {
+
+	// Fetch the participant count
+	const participantCount = await prisma.roomParticipant.count({
+		where: { roomId: room.id },
+	});
+
+	// Build your RoomDTO
+	const response: RoomDTO = {
 		id: room.id,
 		name: room.name,
 		isPublic: room.isPublic,
@@ -47,7 +55,9 @@ const createRoom: RequestHandler<{}, CreateRoomResponse, CreateRoomBody> = async
 		lastActive: room.lastActive.toISOString(),
 		currentVideoPosition: room.currentVideoPosition,
 		currentVideoTime: room.currentVideoTime,
+		participantCount,
 	};
+
 	res.status(201).json(response);
 };
 
