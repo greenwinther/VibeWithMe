@@ -9,6 +9,7 @@
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
+      "src/*": ["src/*"],
       "@types": ["types"],
       "@types/*": ["types/*"]
     }
