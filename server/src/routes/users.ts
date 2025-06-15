@@ -1,6 +1,6 @@
 import type { ErrorResponse, UserDTO } from "@types";
 import { RequestHandler, Router } from "express";
-import { prisma } from "../lib/prisma";
+import { prisma } from "src/lib/prisma";
 
 interface UpdateUserBody {
 	name?: string;
