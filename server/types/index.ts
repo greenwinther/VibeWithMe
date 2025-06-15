@@ -4,7 +4,7 @@
  */
 
 // Pull in the Prisma model types
-import type { Message, Room, RoomParticipant, User, Video } from "@prisma/client";
+import { Message, Room, RoomParticipant, User, Video } from "@prisma/client";
 
 // Re-export the raw models
 export type { Message, Room, RoomParticipant, User, Video };
@@ -41,6 +41,7 @@ export interface RoomDTO {
 	currentVideoTime: number;
 	participantCount: number;
 }
+
 export type PublicRoomDTO = Omit<RoomDTO, "isPublic">;
 
 // Request bodies
