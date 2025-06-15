@@ -2,43 +2,38 @@ import { VideoDTO } from "@/server/types";
 import React, { useEffect, useState } from "react";
 import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-type Props = {
+interface YouTubeSearchProps {
 	onSelect: (video: VideoDTO) => void;
-};
+}
 
-export const YouTubeSearch: React.FC<Props> = ({ onSelect }) => {
+export const YouTubeSearch: React.FC<YouTubeSearchProps> = ({ onSelect }) => {
 	const [query, setQuery] = useState("");
 	const [results, setResults] = useState<VideoDTO[]>([]);
 	const [debouncedQuery, setDebouncedQuery] = useState(query);
 
-	// Update debouncedQuery 500ms after the user stops typing
+	// Debounce query input
 	useEffect(() => {
-		const handler = setTimeout(() => {
-			setDebouncedQuery(query);
-		}, 500);
+		const handler = setTimeout(() => setDebouncedQuery(query), 500);
 		return () => clearTimeout(handler);
 	}, [query]);
 
-	// Whenever debouncedQuery changes, fire the search
+	// Fetch results when debounced query changes
 	useEffect(() => {
-		// if the query is empty, clear results and bail
 		if (!debouncedQuery.trim()) {
 			setResults([]);
 			return;
 		}
-
-		const fetchResults = async () => {
+		async function fetchResults() {
 			try {
 				const res = await fetch(
 					`http://localhost:4000/youtube-search?q=${encodeURIComponent(debouncedQuery)}`
 				);
-				const data: VideoDTO[] = await res.json();
+				const data = (await res.json()) as VideoDTO[];
 				setResults(data);
-			} catch (e) {
-				console.error("Search error", e);
+			} catch (err) {
+				console.error("YouTube search error", err);
 			}
-		};
-
+		}
 		fetchResults();
 	}, [debouncedQuery]);
 
