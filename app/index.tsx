@@ -10,9 +10,8 @@
 
 import Button from "@/components/Button";
 import InputField from "@/components/InputField";
-import Profile from "@/components/Profile";
 import RoomList, { RoomItem } from "@/components/RoomList";
-import { PublicRoomDTO } from "@/server/shared";
+import { PublicRoomDTO } from "@/server/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -24,7 +23,6 @@ export default function LobbyScreen() {
 	const [loading, setLoading] = useState(true);
 	const [filterText, setFilterText] = useState("");
 	const [username, setUsername] = useState("");
-	const [modalVisible, setModalVisible] = useState(false);
 
 	// Fetch rooms and username on mount
 	useEffect(() => {
@@ -54,7 +52,6 @@ export default function LobbyScreen() {
 		}
 	};
 
-	const handleProfilePress = () => setModalVisible(true);
 	const handleCreateRoom = async () => {
 		if (!filterText.trim()) return;
 		try {
@@ -74,6 +71,10 @@ export default function LobbyScreen() {
 		router.push(`/rooms/${id}`);
 	};
 
+	const handleGoToProfile = () => {
+		router.push("/profile");
+	};
+
 	// Prepare filtered list
 	const filtered: RoomItem[] = rooms
 		.filter((r) => r.name.toLowerCase().includes(filterText.toLowerCase()))
@@ -90,7 +91,7 @@ export default function LobbyScreen() {
 	return (
 		<View style={styles.container}>
 			{/* Profile */}
-			<Profile initials={username.charAt(0)} onPress={handleProfilePress} />
+			<Button title="Profile" onPress={handleGoToProfile} />
 
 			{/* Filter / Create input */}
 			<InputField

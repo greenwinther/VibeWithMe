@@ -1,4 +1,6 @@
 // app/_layout.tsx
+import { RoomProvider } from "@/contexts/RoomContext";
+import { UserProvider } from "@/contexts/UserContext";
 import { Stack } from "expo-router";
 import React from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -6,12 +8,17 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 export default function RootLayout() {
 	return (
 		<SafeAreaProvider>
-			<Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
-				{/* The “index” route is your Lobby */}
-				<Stack.Screen name="index" />
-				{/* This tells expo-router about the dynamic rooms/[id] page */}
-				<Stack.Screen name="rooms/[id]" />
-			</Stack>
+			<UserProvider>
+				<RoomProvider>
+					<Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
+						{/* Lobby */}
+						<Stack.Screen name="index" />
+						{/* Dynamic Room pages */}
+						<Stack.Screen name="rooms/[id]" />
+						<Stack.Screen name="profile" options={{ title: "Profile", headerShown: true }} />
+					</Stack>
+				</RoomProvider>
+			</UserProvider>
 		</SafeAreaProvider>
 	);
 }
