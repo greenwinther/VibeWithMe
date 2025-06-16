@@ -13,7 +13,7 @@ export default function RootLayout() {
 						{/* Lobby */}
 						<Stack.Screen name="index" />
 						{/* Dynamic Room pages */}
-						<Stack.Screen name="rooms/[id]" />
+						<Stack.Screen name="rooms/[id]" options={{ headerShown: true }} />
 						<Stack.Screen name="profile" options={{ title: "Profile", headerShown: true }} />
 					</Stack>
 				</RoomProvider>

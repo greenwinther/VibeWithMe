@@ -4,12 +4,20 @@ import { YouTubePlayer } from "@/components/YoutubePlayer";
 import { YouTubeSearch } from "@/components/YouTubeSearch";
 import { usePlaylist } from "@/contexts/PlaylistContext";
 import { useRoom } from "@/contexts/RoomContext";
-import React from "react";
+import { useUser } from "@/contexts/UserContext";
+import React, { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 export default function RoomScreen() {
-	const { room, loading, error } = useRoom();
+	const { room, loading, error, joinRoom } = useRoom();
+	const { user } = useUser();
 	const { addVideo } = usePlaylist();
+
+	useEffect(() => {
+		if (room && user) {
+			joinRoom(user.id, user.name);
+		}
+	}, [room?.id, user?.id]);
 
 	if (loading) {
 		return (
