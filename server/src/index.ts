@@ -16,7 +16,7 @@ import { prisma } from "./lib/prisma";
 import roomsRouter from "./routes/rooms";
 import usersRouter from "./routes/users";
 import youtubeRouter from "./routes/youtube";
-import { initSockets } from "./socket";
+import { initSockets } from "./socket/index";
 
 // Initialize Express app and HTTP server
 const app = express();
@@ -68,7 +68,8 @@ httpServer.listen(PORT, async () => {
 	cleanupStaleRooms().catch(console.error);
 	setInterval(() => {
 		cleanupStaleRooms().catch(console.error);
-	}, 1000 * 60 * 60); // 1 hour
+	}, 1000 * 60); // 60 seconds
+	// 1000 * 60 * 60 is 1h
 
 	// Bootstrap: create a sample room for development if empty
 	if ((await prisma.room.count()) === 0) {
