@@ -1,3 +1,4 @@
+import { API_BASE } from "@/server/src/lib/api";
 import { socket } from "@/server/src/lib/socket";
 import { RoomDTO, RoomParticipantDTO } from "@/server/types";
 import { useLocalSearchParams } from "expo-router";
@@ -33,7 +34,7 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
 	// fetch room metadata on mount
 	useEffect(() => {
 		if (!roomId) return;
-		fetch(`http://localhost:4000/rooms/${roomId}`)
+		fetch(`${API_BASE}/rooms/${roomId}`)
 			.then((res) => res.json())
 			.then((r: RoomDTO) => setRoom(r))
 			.catch(setError)

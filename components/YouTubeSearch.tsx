@@ -1,3 +1,4 @@
+import { API_BASE } from "@/server/src/lib/api";
 import { VideoDTO } from "@/server/types";
 import React, { useEffect, useState } from "react";
 import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -25,9 +26,7 @@ export const YouTubeSearch: React.FC<YouTubeSearchProps> = ({ onSelect }) => {
 		}
 		async function fetchResults() {
 			try {
-				const res = await fetch(
-					`http://localhost:4000/youtube-search?q=${encodeURIComponent(debouncedQuery)}`
-				);
+				const res = await fetch(`${API_BASE}/youtube-search?q=${encodeURIComponent(debouncedQuery)}`);
 				const data = (await res.json()) as VideoDTO[];
 				setResults(data);
 			} catch (err) {

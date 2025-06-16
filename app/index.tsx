@@ -2,6 +2,7 @@ import Button from "@/components/Button";
 import InputField from "@/components/InputField";
 import RoomList from "@/components/RoomList";
 import { useUser } from "@/contexts/UserContext";
+import { API_BASE } from "@/server/src/lib/api";
 import { PublicRoomDTO } from "@/server/types";
 
 import { useRouter } from "expo-router";
@@ -18,12 +19,15 @@ export default function LobbyScreen() {
 	// Fetch rooms on mount
 	useEffect(() => {
 		(async () => {
+			const url = `${API_BASE}/rooms`;
+			console.log("🔗  loading rooms from:", url);
 			try {
-				const res = await fetch("http://localhost:4000/rooms");
+				const res = await fetch(url);
+				if (!res.ok) throw new Error(`Status ${res.status}`);
 				const data: PublicRoomDTO[] = await res.json();
 				setRooms(data);
 			} catch (e) {
-				console.error("Load rooms failed", e);
+				console.error("❌ Load rooms failed", e);
 			} finally {
 				setLoading(false);
 			}
@@ -33,7 +37,7 @@ export default function LobbyScreen() {
 	const handleCreateRoom = async () => {
 		if (!filterText.trim() || !user) return;
 		try {
-			const res = await fetch("http://localhost:4000/rooms", {
+			const res = await fetch(`${API_BASE}/rooms`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ name: filterText, isPublic: true }),

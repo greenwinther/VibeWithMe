@@ -3,11 +3,11 @@ import { PlaylistItemDTO } from "@/server/types";
 import React from "react";
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-interface PlaylistQueueProps {
+interface PlaylistProps {
 	onSelect: (item: PlaylistItemDTO) => void;
 }
 
-export const PlaylistQueue: React.FC<PlaylistQueueProps> = ({ onSelect }) => {
+export const Playlist: React.FC<PlaylistProps> = ({ onSelect }) => {
 	const { queue } = usePlaylist();
 
 	return (

@@ -1,6 +1,9 @@
+import { API_BASE } from "@/server/src/lib/api";
 import { UserDTO } from "@/server/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import "react-native-get-random-values";
+import { v4 as uuidv4 } from "uuid";
 
 interface UserState {
 	user: UserDTO | null;
@@ -20,14 +23,26 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 	useEffect(() => {
 		(async () => {
 			try {
-				const id = await AsyncStorage.getItem("userId");
-				if (!id) throw new Error("No userId");
-				const res = await fetch(`http://localhost:4000/users/${id}`);
-				if (!res.ok) throw new Error("Fetch failed");
-				const u: UserDTO = await res.json();
-				setUser(u);
-			} catch (err: any) {
-				setError(err);
+				// 1) Try to load existing
+				let id = await AsyncStorage.getItem("userId");
+				let name = await AsyncStorage.getItem("userName");
+				let avatarUrl = await AsyncStorage.getItem("avatarUrl");
+
+				// 2) If missing, generate + save
+				if (!id) {
+					id = uuidv4();
+					await AsyncStorage.setItem("userId", id);
+				}
+				if (!name) {
+					name = `User${Math.floor(Math.random() * 1000)}`;
+					await AsyncStorage.setItem("userName", name);
+				}
+				// avatarUrl can be null / undefined
+
+				setUser({ id, name, avatarUrl });
+			} catch (e: any) {
+				console.error("❌ load user failed", e);
+				setError(e);
 			} finally {
 				setLoading(false);
 			}
@@ -38,7 +53,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 	const updateProfile = async (data: Partial<Pick<UserDTO, "name" | "avatarUrl">>) => {
 		if (!user) throw new Error("Not logged in");
 		try {
-			const res = await fetch(`http://localhost:4000/users/${user.id}`, {
+			const res = await fetch(`${API_BASE}/users/${user.id}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(data),

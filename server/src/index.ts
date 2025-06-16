@@ -61,8 +61,8 @@ initSockets(io);
 
 // Start HTTP server - Listen on PORT - Create a default "Test Room" if none exist
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 4000;
-httpServer.listen(PORT, async () => {
-	console.log(`Server listening on http://localhost:${PORT}`);
+httpServer.listen(PORT, "0.0.0.0", async () => {
+	console.log(`Server listening on http://0.0.0.0:${PORT}`);
 
 	// Run cleanup immediately, then every hour
 	cleanupStaleRooms().catch(console.error);
