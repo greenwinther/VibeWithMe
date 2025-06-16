@@ -1,6 +1,6 @@
 import { Chat } from "@/components/Chat";
-import { PlaylistQueue } from "@/components/PlaylistQueue";
-import { YouTubePlayer } from "@/components/YoutubePlayer";
+import { Playlist } from "@/components/Playlist";
+import { YouTubePlayer } from "@/components/YouTubePlayer";
 import { YouTubeSearch } from "@/components/YouTubeSearch";
 import { usePlaylist } from "@/contexts/PlaylistContext";
 import { useRoom } from "@/contexts/RoomContext";
@@ -9,15 +9,25 @@ import React, { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 export default function RoomScreen() {
-	const { room, loading, error, joinRoom } = useRoom();
+	const { room, loading, error, joinRoom, playPause, isPlaying } = useRoom();
 	const { user } = useUser();
-	const { addVideo } = usePlaylist();
+	const { queue, addVideo } = usePlaylist();
 
+	// Join on mount
 	useEffect(() => {
 		if (room && user) {
 			joinRoom(user.id, user.name);
 		}
 	}, [room?.id, user?.id]);
+
+	// Auto-play the first video as soon as queue populates
+	useEffect(() => {
+		console.log("⏱️ queue length:", queue.length);
+		console.log("▶️ isPlaying:", isPlaying);
+		if (queue.length > 0 && !isPlaying) {
+			playPause(true);
+		}
+	}, [queue, isPlaying]);
 
 	if (loading) {
 		return (
@@ -46,7 +56,7 @@ export default function RoomScreen() {
 			<YouTubeSearch onSelect={(video) => addVideo(video)} />
 
 			{/* Playlist display */}
-			<PlaylistQueue onSelect={() => {}} />
+			<Playlist onSelect={() => {}} />
 
 			{/* Chat UI */}
 			<Chat />
