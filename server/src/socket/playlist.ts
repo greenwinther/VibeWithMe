@@ -1,30 +1,42 @@
-import { VideoDTO } from "@types";
+import { PlaylistItemDTO, VideoDTO } from "@types";
 import type { Server, Socket } from "socket.io";
 import { prisma } from "../lib/prisma";
 
 export function registerPlaylistHandlers(io: Server, socket: Socket) {
-	// playlist fetch
-	socket.on("playlist:fetch", async ({ roomId }: { roomId: string }) => {
-		const videos = await prisma.video.findMany({
+	// Fetch playlist
+	socket.on("playlist:fetch", async ({ roomId }) => {
+		const rows = await prisma.video.findMany({
 			where: { roomId },
 			orderBy: { position: "asc" },
-			select: { videoId: true, title: true, thumbnail: true, duration: true },
+			select: {
+				position: true,
+				videoId: true,
+				title: true,
+				thumbnail: true,
+				duration: true,
+				addedBy: { select: { id: true, name: true } },
+			},
 		});
-		socket.emit(
-			"playlist:update",
-			videos.map((v) => ({
+
+		const queue: PlaylistItemDTO[] = rows.map((v) => ({
+			position: v.position,
+			video: {
 				videoId: v.videoId,
 				title: v.title,
 				thumbnail: v.thumbnail,
 				duration: v.duration,
-			}))
-		);
+			},
+			addedBy: { id: v.addedBy.id, name: v.addedBy.name },
+		}));
+
+		socket.emit("playlist:update", queue);
 	});
 
-	// video:add — add and broadcast updated queue
+	// Add and broadcast updated queue
 	socket.on(
 		"video:add",
 		async ({ roomId, userId, video }: { roomId: string; userId: string; video: VideoDTO }) => {
+			// Add to DB
 			const agg = await prisma.video.aggregate({ where: { roomId }, _max: { position: true } });
 			const nextPosition = (agg._max.position ?? -1) + 1;
 			await prisma.video.create({
@@ -38,8 +50,34 @@ export function registerPlaylistHandlers(io: Server, socket: Socket) {
 					addedBy: { connect: { id: userId } },
 				},
 			});
-			// re-emit full playlist
-			socket.emit("playlist:fetch", { roomId });
+
+			// Re-fetch queue
+			const rows = await prisma.video.findMany({
+				where: { roomId },
+				orderBy: { position: "asc" },
+				select: {
+					position: true,
+					videoId: true,
+					title: true,
+					thumbnail: true,
+					duration: true,
+					addedBy: { select: { id: true, name: true } },
+				},
+			});
+
+			const queue: PlaylistItemDTO[] = rows.map((v) => ({
+				position: v.position,
+				video: {
+					videoId: v.videoId,
+					title: v.title,
+					thumbnail: v.thumbnail,
+					duration: v.duration,
+				},
+				addedBy: { id: v.addedBy.id, name: v.addedBy.name },
+			}));
+
+			// Broadcast to *all* clients in the room
+			io.to(roomId).emit("playlist:update", queue);
 		}
 	);
 }
