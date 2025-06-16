@@ -1,7 +1,7 @@
 import { prisma } from "./prisma";
 
 // how long before a room is considered stale (1000 * 60 * 60 * 24) (24 hrs)
-const INACTIVITY_THRESHOLD_MS = 1000 * 60 * 60 * 24;
+const INACTIVITY_THRESHOLD_MS = 1000 * 60; // 60 seconds
 
 export async function cleanupStaleRooms() {
 	const cutoff = new Date(Date.now() - INACTIVITY_THRESHOLD_MS);
