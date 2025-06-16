@@ -14,6 +14,7 @@ interface RoomState {
 	currentTime: number;
 	playPause: (playing: boolean) => void;
 	seekPlayback: (time: number) => void;
+	joinRoom: (userId: string, userName: string) => void;
 }
 
 const RoomContext = createContext<RoomState | undefined>(undefined);
@@ -99,6 +100,7 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
 				currentTime,
 				playPause,
 				seekPlayback,
+				joinRoom,
 			}}
 		>
 			{children}
@@ -109,5 +111,5 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export function useRoom() {
 	const ctx = useContext(RoomContext);
 	if (!ctx) throw new Error("useRoom must be inside RoomProvider");
-	return { ...ctx, joinRoom: () => {} };
+	return ctx;
 }
