@@ -28,6 +28,40 @@ const listRooms: RequestHandler<{}, PublicRoomDTO[]> = async (_req, res) => {
 	res.json(dto);
 };
 
+// fetch metadata for a single room
+const getRoom: RequestHandler<{ id: string }, RoomDTO | ErrorResponse> = async (req, res) => {
+	const { id } = req.params;
+	const record = await prisma.room.findUnique({
+		where: { id },
+		select: {
+			id: true,
+			name: true,
+			isPublic: true,
+			createdAt: true,
+			lastActive: true,
+			currentVideoPosition: true,
+			currentVideoTime: true,
+			_count: { select: { participants: true } },
+		},
+	});
+	if (!record) {
+		const err: ErrorResponse = { error: "Room not found" };
+		res.status(404).json(err);
+		return;
+	}
+	const dto: RoomDTO = {
+		id: record.id,
+		name: record.name,
+		isPublic: record.isPublic,
+		createdAt: record.createdAt.toISOString(),
+		lastActive: record.lastActive.toISOString(),
+		currentVideoPosition: record.currentVideoPosition,
+		currentVideoTime: record.currentVideoTime,
+		participantCount: record._count.participants,
+	};
+	res.json(dto);
+};
+
 // Create a new room
 const createRoom: RequestHandler<{}, RoomDTO | ErrorResponse, CreateRoomBody> = async (req, res) => {
 	const { name, isPublic } = req.body;
@@ -62,6 +96,7 @@ const createRoom: RequestHandler<{}, RoomDTO | ErrorResponse, CreateRoomBody> = 
 };
 
 router.get("/", listRooms);
+router.get("/:id", getRoom);
 router.post("/", createRoom);
 
 export default router;

@@ -61,7 +61,7 @@ export async function getRoom(id: string): Promise<Room | null> {
 }
 
 // Post (create) a chat message in a room and include sender info
-export async function postMessage(roomId: string, userId: string, text: string): Promise<ChatMessageDTO> {
+export async function createMessage(roomId: string, userId: string, text: string): Promise<ChatMessageDTO> {
 	const msg = await prisma.message.create({
 		data: {
 			room: { connect: { id: roomId } },
