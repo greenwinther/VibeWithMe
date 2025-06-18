@@ -1,11 +1,10 @@
 import { PublicRoomDTO } from "@/server/types";
+import { Colors, Fonts } from "@/styles/theme";
 import React from "react";
 import { FlatList, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 
 export interface RoomListProps {
-	/** Array of public rooms to display */
 	rooms: PublicRoomDTO[];
-	/** Callback when a room is pressed */
 	onRoomPress: (roomId: string) => void;
 	style?: ViewStyle;
 	itemStyle?: ViewStyle;
@@ -13,10 +12,7 @@ export interface RoomListProps {
 	metaStyle?: TextStyle;
 }
 
-/**
- * RoomList component: renders a list of rooms with touchable items.
- * Uses PublicRoomDTO (includes participantCount).
- */
+// RoomList component: renders a list of rooms with touchable items.
 export default function RoomList({
 	rooms,
 	onRoomPress,
@@ -27,11 +23,16 @@ export default function RoomList({
 }: RoomListProps) {
 	return (
 		<FlatList
-			contentContainerStyle={[styles.container, style]}
+			contentContainerStyle={{ paddingBottom: 100 }}
+			style={[{ flex: 1 }, style]}
 			data={rooms}
 			keyExtractor={(item) => item.id}
 			renderItem={({ item }) => (
-				<TouchableOpacity style={[styles.item, itemStyle]} onPress={() => onRoomPress(item.id)}>
+				<TouchableOpacity
+					style={[styles.item, itemStyle]}
+					onPress={() => onRoomPress(item.id)}
+					activeOpacity={0.7}
+				>
 					<Text style={[styles.title, titleStyle]} numberOfLines={1}>
 						{item.name}
 					</Text>
@@ -46,24 +47,23 @@ export default function RoomList({
 }
 
 const styles = StyleSheet.create({
-	container: {
-		paddingBottom: 16,
-	},
 	item: {
 		padding: 16,
 		marginBottom: 12,
 		borderWidth: 1,
-		borderColor: "#ccc",
-		borderRadius: 8,
-		backgroundColor: "#fff",
+		borderColor: Colors.border,
+		borderRadius: 12,
+		backgroundColor: Colors.cardBackground,
 	},
 	title: {
+		fontFamily: Fonts.subtitle,
 		fontSize: 18,
-		fontWeight: "500",
+		color: Colors.textPrimary,
 	},
 	meta: {
 		marginTop: 4,
+		fontFamily: Fonts.body,
 		fontSize: 14,
-		color: "#555",
+		color: Colors.textSecondary,
 	},
 });
