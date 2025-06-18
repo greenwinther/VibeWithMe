@@ -1,71 +1,88 @@
 import { useChat } from "@/contexts/ChatContext";
 import { useRoom } from "@/contexts/RoomContext";
 import { useUser } from "@/contexts/UserContext";
-import React, { useState } from "react";
-import { Button, FlatList, Image, StyleSheet, Text, TextInput, View } from "react-native";
+import { Colors, Fonts } from "@/styles/theme";
+import React from "react";
+import { FlatList, Image, StyleSheet, Text, View } from "react-native";
 
 export const Chat: React.FC = () => {
 	const { room } = useRoom();
 	const { user } = useUser();
-	const { messages, sendMessage } = useChat();
-	const [text, setText] = useState("");
+	const { messages } = useChat();
 
 	if (!room || !user) {
 		return (
 			<View style={styles.center}>
-				<Text>Loading chat...</Text>
+				<Text style={styles.text}>Loading chat...</Text>
 			</View>
 		);
 	}
 
-	const handleSend = () => {
-		if (!text.trim()) return;
-		sendMessage(text);
-		setText("");
-	};
+	console.log("Chat room:", room);
+	console.log("Chat user:", user);
 
 	return (
-		<View style={styles.container}>
-			<FlatList
-				data={messages}
-				keyExtractor={(item) => item.id}
-				renderItem={({ item }) => (
-					<View style={styles.message}>
+		<FlatList
+			data={messages}
+			extraData={messages}
+			keyExtractor={(item) => item.id}
+			renderItem={({ item }) => (
+				<View style={styles.message}>
+					{item.sender.avatarUrl && (
+						<Image source={{ uri: item.sender.avatarUrl }} style={styles.avatar} />
+					)}
+					<View style={styles.messageContent}>
 						<Text style={styles.sender}>{item.sender.name}</Text>
-						{item.sender.avatarUrl && (
-							<Image source={{ uri: item.sender.avatarUrl }} style={styles.avatar} />
-						)}
-						<Text style={styles.text}>{item.text}</Text>
+						<Text style={styles.body}>{item.text}</Text>
 					</View>
-				)}
-			/>
-			<View style={styles.inputRow}>
-				<TextInput
-					style={styles.input}
-					placeholder="Type a message…"
-					value={text}
-					onChangeText={setText}
-				/>
-				<Button title="Send" onPress={handleSend} />
-			</View>
-		</View>
+				</View>
+			)}
+			showsVerticalScrollIndicator={false}
+			inverted
+		/>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1, padding: 8 },
 	message: {
-		marginVertical: 4,
-		padding: 6,
-		backgroundColor: "#f1f1f1",
-		borderRadius: 4,
 		flexDirection: "row",
-		alignItems: "center",
+		alignItems: "flex-start",
+		backgroundColor: Colors.cardBackground,
+		padding: 10,
+		borderRadius: 12,
+		marginVertical: 6,
+		borderColor: Colors.border,
+		borderWidth: 1,
 	},
-	sender: { fontWeight: "bold", marginRight: 6 },
-	avatar: { width: 24, height: 24, borderRadius: 12, marginRight: 6 },
-	text: { flexShrink: 1 },
-	inputRow: { flexDirection: "row", alignItems: "center" },
-	input: { flex: 1, borderWidth: 1, borderColor: "#ccc", borderRadius: 4, padding: 8, marginRight: 8 },
-	center: { flex: 1, justifyContent: "center", alignItems: "center" },
+	avatar: {
+		width: 32,
+		height: 32,
+		borderRadius: 16,
+		marginRight: 10,
+		marginTop: 2,
+	},
+	messageContent: {
+		flexShrink: 1,
+	},
+	sender: {
+		fontFamily: Fonts.subtitle,
+		fontSize: 14,
+		color: Colors.textPrimary,
+		marginBottom: 2,
+	},
+	body: {
+		fontFamily: Fonts.body,
+		fontSize: 14,
+		color: Colors.textSecondary,
+	},
+	text: {
+		fontFamily: Fonts.body,
+		color: Colors.textPrimary,
+	},
+	center: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		backgroundColor: Colors.background,
+	},
 });
