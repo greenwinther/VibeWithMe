@@ -1,7 +1,8 @@
 import { usePlaylist } from "@/contexts/PlaylistContext";
 import { PlaylistItemDTO } from "@/server/types";
+import { Colors, Fonts } from "@/styles/theme";
 import React from "react";
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity } from "react-native";
 
 interface PlaylistProps {
 	onSelect: (item: PlaylistItemDTO) => void;
@@ -11,37 +12,56 @@ export const Playlist: React.FC<PlaylistProps> = ({ onSelect }) => {
 	const { queue } = usePlaylist();
 
 	return (
-		<View style={styles.container}>
-			<FlatList
-				data={queue}
-				keyExtractor={(item) => `${item.position}-${item.video.videoId}`}
-				renderItem={({ item }) => (
-					<TouchableOpacity style={styles.item} onPress={() => onSelect(item)}>
-						<Image source={{ uri: item.video.thumbnail }} style={styles.thumbnail} />
-						<View style={styles.info}>
-							<Text style={styles.title} numberOfLines={1}>
-								{item.video.title}
-							</Text>
-							<Text style={styles.meta}>
-								#{item.position} added by {item.addedBy.name}
-							</Text>
-						</View>
-					</TouchableOpacity>
-				)}
-			/>
-		</View>
+		<FlatList
+			data={queue}
+			horizontal
+			showsHorizontalScrollIndicator={false}
+			keyExtractor={(item) => `${item.position}-${item.video.videoId}`}
+			contentContainerStyle={styles.listContent}
+			renderItem={({ item }) => (
+				<TouchableOpacity style={styles.item} onPress={() => onSelect(item)} activeOpacity={0.8}>
+					<Image source={{ uri: item.video.thumbnail }} style={styles.thumbnail} />
+					<Text style={styles.title} numberOfLines={1}>
+						{item.video.title}
+					</Text>
+					<Text style={styles.meta} numberOfLines={1}>
+						#{item.position} by {item.addedBy.name}
+					</Text>
+				</TouchableOpacity>
+			)}
+		/>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1, padding: 8 },
+	listContent: {
+		paddingHorizontal: 12,
+	},
 	item: {
-		flexDirection: "row",
-		marginVertical: 4,
+		width: 120,
+		marginRight: 12,
+		backgroundColor: Colors.cardBackground,
+		borderRadius: 10,
+		padding: 8,
 		alignItems: "center",
 	},
-	thumbnail: { width: 80, height: 45, borderRadius: 4, marginRight: 12 },
-	info: { flex: 1 },
-	title: { fontWeight: "600" },
-	meta: { fontSize: 12, color: "#666" },
+	thumbnail: {
+		width: "100%",
+		height: 70,
+		borderRadius: 6,
+		marginBottom: 6,
+	},
+	title: {
+		fontFamily: Fonts.body,
+		fontSize: 13,
+		color: Colors.textPrimary,
+		textAlign: "center",
+	},
+	meta: {
+		fontFamily: Fonts.body,
+		fontSize: 11,
+		color: Colors.textSecondary,
+		marginTop: 2,
+		textAlign: "center",
+	},
 });
