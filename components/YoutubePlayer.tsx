@@ -1,5 +1,6 @@
 import { usePlaylist } from "@/contexts/PlaylistContext";
 import { useRoom } from "@/contexts/RoomContext";
+import { Colors } from "@/styles/theme";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import YoutubePlayer, { YoutubeIframeRef } from "react-native-youtube-iframe";
@@ -50,7 +51,9 @@ export const YouTubePlayer: React.FC<{ height?: number }> = ({ height = 200 }) =
 
 	return (
 		<View style={[styles.container, { height }]}>
-			{loading && <ActivityIndicator style={StyleSheet.absoluteFill} size="large" />}
+			{loading && (
+				<ActivityIndicator style={StyleSheet.absoluteFill} size="large" color={Colors.primary} />
+			)}
 			<YoutubePlayer
 				key={videoId}
 				ref={playerRef}
@@ -72,7 +75,6 @@ export const YouTubePlayer: React.FC<{ height?: number }> = ({ height = 200 }) =
 const styles = StyleSheet.create({
 	container: {
 		width: "100%",
-		backgroundColor: "black",
 		overflow: "hidden",
 	},
 });
