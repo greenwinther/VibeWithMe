@@ -1,3 +1,4 @@
+import { Colors, Fonts } from "@/styles/theme";
 import React from "react";
 import {
 	GestureResponderEvent,
@@ -20,7 +21,7 @@ export default function Button({ title, onPress, disabled = false, style, textSt
 	return (
 		<TouchableOpacity
 			onPress={onPress}
-			activeOpacity={0.7}
+			activeOpacity={0.8}
 			disabled={disabled}
 			style={[styles.button, disabled && styles.disabled, style]}
 		>
@@ -31,10 +32,10 @@ export default function Button({ title, onPress, disabled = false, style, textSt
 
 const styles = StyleSheet.create({
 	button: {
-		backgroundColor: "#007AFF",
+		backgroundColor: Colors.primary,
 		paddingVertical: 12,
-		paddingHorizontal: 16,
-		borderRadius: 8,
+		paddingHorizontal: 20,
+		borderRadius: 24,
 		alignItems: "center",
 		justifyContent: "center",
 	},
@@ -42,8 +43,8 @@ const styles = StyleSheet.create({
 		opacity: 0.6,
 	},
 	text: {
-		color: "#fff",
+		fontFamily: Fonts.body,
 		fontSize: 16,
-		fontWeight: "600",
+		color: "#fff",
 	},
 });
