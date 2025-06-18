@@ -1,15 +1,14 @@
 import Constants from "expo-constants";
-import { Platform } from "react-native";
 
-// Expo Go on SDK 48+ populates manifest2.debuggerHost with "IP:port"
+declare const __DEV__: boolean;
+
 const debuggerHost = Constants.manifest2?.debuggerHost;
-
-// Grab just the host (drop the port), or default to "localhost"
 let host = debuggerHost?.split(":")[0] ?? "localhost";
 
-// Android emulator needs 10.0.2.2 to reach your machine
-if (Platform.OS === "android") {
-	host = "10.0.2.2";
+// Temporary override to test emulator vs phone issues
+const devOverrideIP = "192.168.8.37";
+if (__DEV__) {
+	host = devOverrideIP;
 }
 
 export const API_BASE = `http://${host}:4000`;

@@ -68,7 +68,7 @@ httpServer.listen(PORT, "0.0.0.0", async () => {
 	cleanupStaleRooms().catch(console.error);
 	setInterval(() => {
 		cleanupStaleRooms().catch(console.error);
-	}, 1000 * 60); // 60 seconds
+	}, 1000 * 60 * 10); // 60 seconds
 	// 1000 * 60 * 60 is 1h
 
 	// Bootstrap: create a sample room for development if empty

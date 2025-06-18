@@ -32,18 +32,23 @@ const updateUser: RequestHandler<{ id: string }, UserDTO | ErrorResponse, Update
 	const { id } = req.params;
 	const { name, avatarUrl } = req.body;
 	try {
-		const updated = await prisma.user.update({
+		const updated = await prisma.user.upsert({
 			where: { id },
-			data: {
+			update: {
 				...(name != null && { name }),
 				...(avatarUrl != null && { avatarUrl }),
+			},
+			create: {
+				id,
+				name: name ?? `User${Math.floor(Math.random() * 1000)}`,
+				avatarUrl,
 			},
 			select: { id: true, name: true, avatarUrl: true },
 		});
 		res.json(updated);
 	} catch (error) {
 		console.error(error);
-		const err: ErrorResponse = { error: "Could not update profile" };
+		const err: ErrorResponse = { error: "Could not update or create profile" };
 		res.status(500).json(err);
 	}
 };
