@@ -28,16 +28,27 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 				let name = await AsyncStorage.getItem("userName");
 				let avatarUrl = await AsyncStorage.getItem("avatarUrl");
 
+				let isNew = false;
+
 				// 2) If missing, generate + save
 				if (!id) {
 					id = uuidv4();
 					await AsyncStorage.setItem("userId", id);
+					isNew = true;
 				}
 				if (!name) {
 					name = `User${Math.floor(Math.random() * 1000)}`;
 					await AsyncStorage.setItem("userName", name);
 				}
-				// avatarUrl can be null / undefined
+				// If this is a new user, create it in the backend
+				if (isNew) {
+					const res = await fetch(`${API_BASE}/users/${id}`, {
+						method: "PUT",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ name, avatarUrl }),
+					});
+					if (!res.ok) throw new Error("Failed to create user in backend");
+				}
 
 				setUser({ id, name, avatarUrl });
 			} catch (e: any) {

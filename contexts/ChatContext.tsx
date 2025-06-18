@@ -22,12 +22,23 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 		if (!room?.id) return;
 
 		// subscribe to new messages
-		const handleMessage = (msg: ChatMessageDTO) => setMessages((prev) => [...prev, msg]);
+		const handleMessage = (msg: ChatMessageDTO) => {
+			console.log("📩 Received message in ChatContext", msg);
+			console.log("✅ message id:", msg.id);
+			setMessages((prev) => [...prev, msg]);
+		};
 		socket.on("chat:message", handleMessage);
 
 		// fetch history
 		socket.emit("chat:fetch", { roomId: room.id });
-		socket.on("chat:history", (history: ChatMessageDTO[]) => setMessages(history));
+		socket.on("chat:history", (history: ChatMessageDTO[]) => {
+			setMessages((prev) => {
+				const ids = new Set(prev.map((m) => m.id));
+				const merged = [...prev, ...history.filter((m) => !ids.has(m.id))];
+
+				return merged;
+			});
+		});
 
 		return () => {
 			socket.off("chat:message", handleMessage);
@@ -37,6 +48,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 	const sendMessage = (text: string) => {
 		if (!room?.id || !user) return;
+		console.log("📤 ChatContext sendMessage", text);
 		socket.emit("chat:message", { roomId: room.id, userId: user.id, text });
 	};
 
