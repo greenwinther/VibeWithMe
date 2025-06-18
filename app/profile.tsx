@@ -1,13 +1,26 @@
 import { useUser } from "@/contexts/UserContext";
+import { Colors, Fonts, GlobalStyles } from "@/styles/theme";
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Button, Image, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+	ActivityIndicator,
+	Alert,
+	Image,
+	StyleSheet,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProfileScreen() {
 	const { user, loading, error, updateProfile } = useUser();
 	const [name, setName] = useState("");
 	const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 	const [saving, setSaving] = useState(false);
+	const router = useRouter();
 
 	// Initialize form fields when user loads
 	useEffect(() => {
@@ -38,7 +51,7 @@ export default function ProfileScreen() {
 		setSaving(true);
 		try {
 			await updateProfile({ name, avatarUrl: avatarUrl ?? undefined });
-			Alert.alert("Saved", "Your profile has been updated.");
+			router.replace("/");
 		} catch (err) {
 			console.error(err);
 			Alert.alert("Error", "Couldn't save profile.");
@@ -48,57 +61,118 @@ export default function ProfileScreen() {
 	};
 
 	if (loading) {
-		return <ActivityIndicator style={styles.center} size="large" />;
+		return <ActivityIndicator style={GlobalStyles.center} size="large" />;
 	}
 	if (error) {
 		return (
-			<View style={styles.center}>
-				<Text>Error loading profile</Text>
+			<View style={GlobalStyles.center}>
+				<Text style={GlobalStyles.text}>Error loading profile</Text>
 			</View>
 		);
 	}
 
 	return (
-		<View style={styles.container}>
-			<Text style={styles.label}>Display Name</Text>
-			<TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Your name" />
+		<SafeAreaView style={{ flex: 1, backgroundColor: Colors.background }}>
+			<View style={styles.container}>
+				<Text style={styles.title}>Your Vibe</Text>
 
-			<Text style={[styles.label, { marginTop: 20 }]}>Avatar</Text>
-			{avatarUrl ? (
-				<Image source={{ uri: avatarUrl }} style={styles.avatar} />
-			) : (
-				<View style={[styles.avatar, styles.avatarPlaceholder]}>
-					<Text>No avatar</Text>
+				{/* Avatar Section */}
+				<View style={styles.avatarBlock}>
+					{avatarUrl ? (
+						<Image source={{ uri: avatarUrl }} style={styles.avatar} />
+					) : (
+						<View style={[styles.avatar, styles.avatarPlaceholder]}>
+							<Text style={{ fontFamily: Fonts.body, fontSize: 24 }}>👤</Text>
+						</View>
+					)}
+					<TouchableOpacity onPress={pickAvatar} style={styles.chooseButton}>
+						<Text style={styles.chooseButtonText}>Choose Photo</Text>
+					</TouchableOpacity>
 				</View>
-			)}
-			<Button title="Choose Photo" onPress={pickAvatar} />
 
-			<View style={{ marginTop: 30 }}>
-				{saving ? <ActivityIndicator /> : <Button title="Save Profile" onPress={handleSave} />}
+				{/* Change Name */}
+				<Text style={styles.label}>Display Name</Text>
+				<TextInput
+					style={styles.input}
+					value={name}
+					onChangeText={setName}
+					placeholder="Your name"
+					placeholderTextColor={Colors.textSecondary}
+				/>
+
+				{/* Save button */}
+				<TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={saving}>
+					<Text style={styles.saveButtonText}>{saving ? "Saving..." : "Save Profile"}</Text>
+				</TouchableOpacity>
 			</View>
-		</View>
+		</SafeAreaView>
 	);
 }
 
 const styles = StyleSheet.create({
-	container: { flex: 1, padding: 16 },
-	center: { flex: 1, justifyContent: "center", alignItems: "center" },
-	label: { fontWeight: "600", marginBottom: 8 },
+	container: {
+		flex: 1,
+		padding: 20,
+		gap: 8,
+		justifyContent: "center",
+	},
+	title: {
+		fontFamily: Fonts.title,
+		fontSize: 32,
+		textAlign: "center",
+		color: Colors.textPrimary,
+		marginBottom: 24,
+	},
+	label: {
+		fontFamily: Fonts.body,
+		fontSize: 16,
+		color: Colors.textPrimary,
+	},
 	input: {
 		borderWidth: 1,
-		borderColor: "#ccc",
-		padding: 8,
-		borderRadius: 4,
+		borderColor: Colors.border,
+		padding: 10,
+		borderRadius: 8,
+		fontFamily: Fonts.body,
+		color: Colors.textPrimary,
+		backgroundColor: Colors.cardBackground,
+		marginBottom: 32,
+	},
+	avatarBlock: {
+		alignItems: "center",
+		marginBottom: 32,
 	},
 	avatar: {
 		width: 100,
 		height: 100,
 		borderRadius: 50,
+		backgroundColor: Colors.cardBackground,
 		marginBottom: 12,
 	},
 	avatarPlaceholder: {
-		backgroundColor: "#eee",
 		justifyContent: "center",
 		alignItems: "center",
+	},
+	chooseButton: {
+		backgroundColor: Colors.border,
+		paddingVertical: 6,
+		paddingHorizontal: 16,
+		borderRadius: 8,
+	},
+	chooseButtonText: {
+		fontFamily: Fonts.body,
+		color: Colors.textPrimary,
+		fontSize: 14,
+	},
+	saveButton: {
+		backgroundColor: Colors.primary,
+		paddingVertical: 14,
+		borderRadius: 12,
+		alignItems: "center",
+	},
+	saveButtonText: {
+		fontFamily: Fonts.subtitle,
+		color: "#fff",
+		fontSize: 16,
 	},
 });
